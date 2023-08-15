@@ -20,6 +20,15 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
+        .bot-logo {
+            margin-right: 10px;
+        }
+
+        .bot-logo img {
+            width: 100px;
+            height: 100px;
+        }
+
         #chatbot {
             background-color: #f5f5f5;
             border: 1px solid #eef1f5;
@@ -28,11 +37,17 @@
         }
         
         #header {
-            background-color: darkslategrey;
-            color: #ffffff;
-            padding: 20px;
-            font-size: 1em;
-            font-weight: bold;
+            background-color: #0000FF;
+            color: #fff;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
         }
 
         message-container {
@@ -176,6 +191,9 @@
 <body>
     <div class="chatbot-container">
         <div id="header">
+            <div class="bot-logo">
+                <img src="logobotse.png" alt="Chatbot Logo">
+            </div>
             <h1>Chatbot</h1>
         </div>
         <div id="chatbot">
@@ -227,11 +245,23 @@
         function processUserInput(input, data) {
             const totalPassed = getTotalPassed(data);
             const totalFailed = getTotalFailed(data);
+            const totalBroken = getTotalBroken(data);
+            const totalSkipped = getTotalSkipped(data);
+            const totalUnknown = getTotalUnknown(data);
+            const totalTotal = getTotalTotal(data);
             
             if (input.toLowerCase().includes('passes') || input.toLowerCase().includes('passed')) {
                 return `Total Passed Test Cases: ${totalPassed}`;
             } else if (input.toLowerCase().includes('failed')) {
                 return `Total Failed Test Cases: ${totalFailed}`;
+            } else if (input.toLowerCase().includes('broken')) {
+                return `Total Broken Test Cases: ${totalBroken}`;
+            } else if (input.toLowerCase().includes('skipped')) {
+                return `Total Skipped Test Cases: ${totalSkipped}`;
+            } else if (input.toLowerCase().includes('unknown')) {
+                return `Total Unknown Test Cases: ${totalUnknown}`;
+            } else if (input.toLowerCase().includes('total')) {
+                return `Total Test Cases: ${totalTotal}`;
             } else {
                 return "I'm sorry, I couldn't understand your question.";
             }
@@ -255,6 +285,46 @@
                 }
             }
             return totalFailed;
+        }
+
+        function getTotalBroken(data) {
+            let totalBroken = 0;
+            for (const item in data) {
+                if (data[item].statistic) {
+                    totalBroken += data[item].statistic.broken || 0;
+                }
+            }
+            return totalBroken;
+        }
+
+        function getTotalSkipped(data) {
+            let totalSkipped = 0;
+            for (const item in data) {
+                if (data[item].statistic) {
+                    totalSkipped += data[item].statistic.skipped || 0;
+                }
+            }
+            return totalSkipped;
+        }
+
+        function getTotalUnknown(data) {
+            let totalUnknown = 0;
+            for (const item in data) {
+                if (data[item].statistic) {
+                    totalUnknown += data[item].statistic.unknown || 0;
+                }
+            }
+            return totalUnknown;
+        }
+
+        function getTotalTotal(data) {
+            let totalTotal = 0;
+            for (const item in data) {
+                if (data[item].statistic) {
+                    totalTotal += data[item].statistic.total || 0;
+                }
+            }
+            return totalTotal;
         }
 
         function addMessageToChat(message, sender) {
