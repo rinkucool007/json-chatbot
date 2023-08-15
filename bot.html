@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+        }
+
+        .chatbot-container {
+            width: 500px;
+            margin: 0 auto;
+            background-color: #f5f5f5;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #chatbot {
+            background-color: #f5f5f5;
+            border: 1px solid #eef1f5;
+            box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+        
+        #header {
+            background-color: darkslategrey;
+            color: #ffffff;
+            padding: 20px;
+            font-size: 1em;
+            font-weight: bold;
+        }
+
+        message-container {
+            background: #ffffff;
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+        
+        @keyframes message-fade-in {
+            from {
+            opacity: 0;
+            transform: translateY(-20px);
+            }
+            to {
+            opacity: 1;
+            transform: translateY(0);
+            }
+        }
+
+        /* Add these styles to your existing CSS */
+
+        /* Style the conversation container */
+        #conversation {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Align user messages to the left */
+            justify-content: flex-end; /* Start messages at the bottom and stack upwards */
+            height: 500px;
+            overflow-y: scroll;
+            overflow-x: hidden; 
+            padding: 20px;
+
+
+            &::-webkit-scrollbar {
+                width: 15px;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 5px;
+            }
+
+            &::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
+        }
+
+        /* Style message containers */
+        .chatbot-message, .user-message {
+            display: flex;
+            flex-wrap: wrap; /* Allow message to break and wrap to next line */
+            margin-bottom: 10px; /* Add spacing between messages */
+        }
+
+        /* Style user messages */
+        .user-message {
+            align-self: flex-start; /* Align user messages to the left */
+        }
+
+        .user-message .chatbot-text {
+            background-color: #f5f5f5;
+            color: #333333;
+            font-size: 1.1em;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Style bot messages */
+        .chatbot-message {
+            align-self: flex-end; /* Align bot messages to the right */
+        }
+
+        .chatbot-message .chatbot-text {
+            background-color: white;
+            color: #333333;
+            font-size: 1.1em;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        
+        #input-form {
+            display: flex;
+            align-items: center;
+            border-top: 1px solid #eef1f5;
+        }
+        
+        #input-field {
+            flex: 1;
+            height: 60px;
+            border: 1px solid #eef1f5;
+            border-radius: 4px;
+            padding: 0 10px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            background: #ffffff;
+            color: #333333;
+            border: none;
+        }
+
+        .send-icon {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        #input-field:focus {
+            border-color: #333333;
+            outline: none;
+        }
+        
+        #submit-button {
+            background-color: transparent;
+            border: none;
+        }
+
+        p[sentTime]:hover::after {    
+            content: attr(sentTime);
+            position: absolute;
+            top: -3px;
+            font-size: 14px;
+            color: gray;
+        }
+
+        .chatbot p[sentTime]:hover::after {  
+            left: 15px;
+        }
+
+        .user-message p[sentTime]:hover::after {  
+            right: 15px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="chatbot-container">
+        <div id="header">
+            <h1>Chatbot</h1>
+        </div>
+        <div id="chatbot">
+            <div id="conversation">
+              <div class="chatbot-message">
+                <p class="chatbot-text">Hi! 👋 it's great to see you!</p>
+              </div>
+            </div>
+            <form id="input-form">
+              <message-container>
+                <input id="input-field" type="text" placeholder="Type your message here">
+                <button id="submit-button" type="submit">
+                  <img class="send-icon" src="send-message.png" alt="">
+                </button>
+              </message-container>
+                
+            </form>
+        </div>  
+
+    </div>
+
+    <script>
+        // Get chatbot elements
+        const chatbot = document.getElementById('chatbot');
+        const conversation = document.getElementById('conversation');
+        const inputForm = document.getElementById('input-form');
+        const inputField = document.getElementById('input-field');
+
+        // Add event listener to input form
+        inputForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const input = inputField.value;
+            
+            fetch('history.json')
+                .then(response => response.json())
+                .then(data => {
+                    const response = processUserInput(input, data);
+                    addMessageToChat(input, 'user');
+                    addMessageToChat(response, 'chatbot');
+                })
+                .catch(error => {
+                    console.error('Error fetching JSON:', error);
+                });
+            
+            inputField.value = '';
+        });
+
+        function processUserInput(input, data) {
+            const totalPassed = getTotalPassed(data);
+            const totalFailed = getTotalFailed(data);
+            
+            if (input.toLowerCase().includes('passes') || input.toLowerCase().includes('passed')) {
+                return `Total Passed Test Cases: ${totalPassed}`;
+            } else if (input.toLowerCase().includes('failed')) {
+                return `Total Failed Test Cases: ${totalFailed}`;
+            } else {
+                return "I'm sorry, I couldn't understand your question.";
+            }
+        }
+
+        function getTotalPassed(data) {
+            let totalPassed = 0;
+            for (const item in data) {
+                if (data[item].statistic) {
+                    totalPassed += data[item].statistic.passed || 0;
+                }
+            }
+            return totalPassed;
+        }
+
+        function getTotalFailed(data) {
+            let totalFailed = 0;
+            for (const item in data) {
+                if (data[item].statistic) {
+                    totalFailed += data[item].statistic.failed || 0;
+                }
+            }
+            return totalFailed;
+        }
+
+        function addMessageToChat(message, sender) {
+            const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: "2-digit" });
+            const messageClass = sender === 'user' ? 'user-message' : 'chatbot-message';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add(messageClass);
+            messageDiv.innerHTML = `<p class="chatbot-text" sentTime="${currentTime}">${message}</p>`;
+            
+            conversation.appendChild(messageDiv);
+            messageDiv.scrollIntoView({ behavior: "smooth" });
+        }
+
+    </script>
+</body>
+</html>  
