@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -35,7 +36,7 @@
             box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.1);
             border-radius: 4px;
         }
-        
+
         #header {
             background-color: #0000FF;
             color: #fff;
@@ -43,6 +44,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            z-index: 2; /* Set a higher z-index to keep header above messages */
         }
 
         .header-content {
@@ -56,15 +58,16 @@
             display: flex;
             align-items: center;
         }
-        
+
         @keyframes message-fade-in {
             from {
-            opacity: 0;
-            transform: translateY(-20px);
+                opacity: 0;
+                transform: translateY(-20px);
             }
+
             to {
-            opacity: 1;
-            transform: translateY(0);
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
@@ -72,44 +75,30 @@
 
         /* Style the conversation container */
         #conversation {
+            flex: 1;
             display: flex;
-            flex-direction: column;
-            align-items: flex-start; /* Align user messages to the left */
-            justify-content: flex-end; /* Start messages at the bottom and stack upwards */
-            height: 500px;
-            overflow-y: scroll;
-            overflow-x: hidden; 
+            flex-direction: column; /* Stack messages from bottom to top */
+            align-items: flex-start;
             padding: 20px;
-
-
-            &::-webkit-scrollbar {
-                width: 15px;
-            }
-
-            &::-webkit-scrollbar-track {
-                background: #f1f1f1;
-            }
-
-            &::-webkit-scrollbar-thumb {
-                background: #888;
-                border-radius: 5px;
-            }
-
-            &::-webkit-scrollbar-thumb:hover {
-                background: #555;
-            }
+            overflow-y: auto; /* Enable vertical scrolling */
+            scrollbar-width: thin;
+            scroll-behavior: smooth;
+            max-height: 500px;
         }
 
         /* Style message containers */
-        .chatbot-message, .user-message {
+        .chatbot-message,
+        .user-message {
             display: flex;
-            flex-wrap: wrap; /* Allow message to break and wrap to next line */
-            margin-bottom: 10px; /* Add spacing between messages */
+            flex-wrap: wrap;
+            margin-bottom: 10px;
         }
 
         /* Style user messages */
         .user-message {
-            align-self: flex-start; /* Align user messages to the left */
+            align-self: flex-start;
+            position: relative;
+            z-index: 1;
         }
 
         .user-message .chatbot-text {
@@ -119,11 +108,15 @@
             padding: 15px;
             border-radius: 5px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            word-wrap: break-word;
         }
 
         /* Style bot messages */
         .chatbot-message {
-            align-self: flex-end; /* Align bot messages to the right */
+            align-self: flex-end;
+            position: relative;
+            z-index: 1;
         }
 
         .chatbot-message .chatbot-text {
@@ -133,15 +126,22 @@
             padding: 15px;
             border-radius: 5px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            word-wrap: break-word;
         }
 
-        
+
+
+
+
+
+
         #input-form {
             display: flex;
             align-items: center;
             border-top: 1px solid #eef1f5;
         }
-        
+
         #input-field {
             flex: 1;
             height: 60px;
@@ -159,18 +159,18 @@
             margin-right: 10px;
             cursor: pointer;
         }
-        
+
         #input-field:focus {
             border-color: #333333;
             outline: none;
         }
-        
+
         #submit-button {
             background-color: transparent;
             border: none;
         }
 
-        p[sentTime]:hover::after {    
+        p[sentTime]:hover::after {
             content: attr(sentTime);
             position: absolute;
             top: -3px;
@@ -178,16 +178,19 @@
             color: gray;
         }
 
-        .chatbot p[sentTime]:hover::after {  
+        .chatbot p[sentTime]:hover::after {
             left: 15px;
         }
 
-        .user-message p[sentTime]:hover::after {  
-            right: 15px;
+        /* Style the time displayed with messages */
+        .message-time {
+            font-size: 12px;
+            color: gray;
+            margin-right: 6px;
         }
-
     </style>
 </head>
+
 <body>
     <div class="chatbot-container">
         <div id="header">
@@ -198,20 +201,20 @@
         </div>
         <div id="chatbot">
             <div id="conversation">
-              <div class="chatbot-message">
-                <p class="chatbot-text">Hi! 👋 it's great to see you!</p>
-              </div>
+                <div class="chatbot-message">
+                    <p class="chatbot-text">Hi! 👋 it's great to see you!</p>
+                </div>
             </div>
             <form id="input-form">
-              <message-container>
-                <input id="input-field" type="text" placeholder="Type your message here">
-                <button id="submit-button" type="submit">
-                  <img class="send-icon" src="send-message.png" alt="">
-                </button>
-              </message-container>
-                
+                <message-container>
+                    <input id="input-field" type="text" placeholder="Type your message here">
+                    <button id="submit-button" type="submit">
+                        <img class="send-icon" src="send-message.png" alt="">
+                    </button>
+                </message-container>
+
             </form>
-        </div>  
+        </div>
 
     </div>
 
@@ -223,11 +226,11 @@
         const inputField = document.getElementById('input-field');
 
         // Add event listener to input form
-        inputForm.addEventListener('submit', function(event) {
+        inputForm.addEventListener('submit', function (event) {
             event.preventDefault();
-            
+
             const input = inputField.value;
-            
+
             fetch('history.json')
                 .then(response => response.json())
                 .then(data => {
@@ -238,8 +241,9 @@
                 .catch(error => {
                     console.error('Error fetching JSON:', error);
                 });
-            
+
             inputField.value = '';
+            scrollToBottom(); // Scroll to the bottom after submitting the input
         });
 
         function processUserInput(input, data) {
@@ -249,7 +253,7 @@
             const totalSkipped = getTotalSkipped(data);
             const totalUnknown = getTotalUnknown(data);
             const totalTotal = getTotalTotal(data);
-            
+
             if (input.toLowerCase().includes('passes') || input.toLowerCase().includes('passed')) {
                 return `Total Passed Test Cases: ${totalPassed}`;
             } else if (input.toLowerCase().includes('failed')) {
@@ -262,6 +266,8 @@
                 return `Total Unknown Test Cases: ${totalUnknown}`;
             } else if (input.toLowerCase().includes('total')) {
                 return `Total Test Cases: ${totalTotal}`;
+            } else if (input.toLowerCase().includes('error description')) {
+                return processErrorDescription(data);
             } else {
                 return "I'm sorry, I couldn't understand your question.";
             }
@@ -330,15 +336,55 @@
         function addMessageToChat(message, sender) {
             const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: "2-digit" });
             const messageClass = sender === 'user' ? 'user-message' : 'chatbot-message';
-            
+
             const messageDiv = document.createElement('div');
             messageDiv.classList.add(messageClass);
-            messageDiv.innerHTML = `<p class="chatbot-text" sentTime="${currentTime}">${message}</p>`;
-            
+            // messageDiv.innerHTML = `<p class="chatbot-text" sentTime="${currentTime}">${message.replace(/\n/g, '<br>')}</p>`;
+            messageDiv.innerHTML = `
+                <p class="chatbot-text" sentTime="${currentTime}">
+                    <span class="message-time">${currentTime}</span>
+                    ${message.replace(/\n/g, '<br>')}
+                </p>
+            `;
+
             conversation.appendChild(messageDiv);
-            messageDiv.scrollIntoView({ behavior: "smooth" });
+            scrollToBottom(); // Scroll to the bottom after adding the message
+        }
+
+        function scrollToBottom() {
+            conversation.scrollTop = conversation.scrollHeight;
+        }
+
+        function processErrorDescription(data) {
+            let errorDescriptions = {};
+            let allErrors = "";
+
+            for (const item in data) {
+                if (data[item].items) {
+                    data[item].items.forEach(item => {
+                        if (item.statusDetails) {
+                            if (errorDescriptions[item.statusDetails]) {
+                                errorDescriptions[item.statusDetails]++;
+                            } else {
+                                errorDescriptions[item.statusDetails] = 1;
+                            }
+                            allErrors += `- ${item.statusDetails}\n`;
+                        }
+                    });
+                }
+            }
+
+            const totalDifferentErrors = Object.keys(errorDescriptions).length;
+            const totalSimilarErrors = Object.values(errorDescriptions).reduce((total, count) => total + (count > 1 ? 1 : 0), 0);
+
+            const errorDetails = allErrors;
+
+            return `1. Total Different Error Descriptions: ${totalDifferentErrors}\n\n\n\n\n` +
+                `2. Total Similar Error Descriptions: ${totalSimilarErrors}\n\n\n\n\n\n` +
+                `3. Error Details:\n\n\n\n\n${errorDetails}`;
         }
 
     </script>
 </body>
-</html>  
+
+</html>
