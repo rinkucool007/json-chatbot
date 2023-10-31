@@ -106,7 +106,7 @@
 
         .user-message .chatbot-text {
             background-color: #f5f5f5;
-            color: #333333;
+            color: #333333; /* User message text color */
             font-size: 1.1em;
             padding: 15px;
             border-radius: 5px;
@@ -123,8 +123,8 @@
         }
 
         .chatbot-message .chatbot-text {
-            background-color: rgb(10, 10, 10);
-            color: #fbfbfd;
+            background-color: #0000FF; /* Chatbot message background color */
+            color: #fff; /* Chatbot message text color */
             font-size: 1.1em;
             padding: 15px;
             border-radius: 5px;
@@ -222,6 +222,7 @@
         const inputForm = document.getElementById('input-form');
         const inputField = document.getElementById('input-field');
 
+
         // Add event listener to input form
         inputForm.addEventListener('submit', function (event) {
             event.preventDefault();
@@ -265,10 +266,27 @@
                 return `Total Test Cases: ${totalTotal}`;
             } else if (input.toLowerCase().includes('error description')) {
                 return processErrorDescription(data);
+            } else if (input.toLowerCase().includes("how to fix below code")) {
+                return `To fix the code, you can modify it as follows:\n\n` +
+                    `Given(/^that I am on '([^"]*)' hello site$/, (site) => {\n` +
+                    `    browser.reloadSession();\n` +
+                    `    browser.maximizeWindow();\n` +
+                    `    LoginPage.open(site);\n` +
+                    `    await browser.waitUntil(async () => {\n` +
+                    `        // Define a condition that an element with a specific selector is displayed.\n` +
+                    `        // For example, wait until an element with a specific selector is displayed.\n` +
+                    `        return browser.isExisting('YourSelector');  // Replace 'YourSelector' with the actual selector.\n` +
+                    `    }, {\n` +
+                    `        timeout: 5000,  // Max wait time in milliseconds\n` +
+                    `        timeoutMsg: 'Element not found after 5 seconds', // Optional custom error message\n` +
+                    `        interval: 1000, // Polling interval in milliseconds\n` +
+                    `    });\n` +
+                    `});`;
             } else {
                 return "I'm sorry, I couldn't understand your question.";
             }
         }
+
 
         function getTotalPassed(data) {
             let totalPassed = 0;
@@ -336,7 +354,6 @@
 
             const messageDiv = document.createElement('div');
             messageDiv.classList.add(messageClass);
-            // messageDiv.innerHTML = `<p class="chatbot-text" sentTime="${currentTime}">${message.replace(/\n/g, '<br>')}</p>`;
             messageDiv.innerHTML = `
                 <p class="chatbot-text" sentTime="${currentTime}">
                     <span class="message-time">${currentTime}</span>
@@ -347,6 +364,7 @@
             conversation.appendChild(messageDiv);
             scrollToBottom(); // Scroll to the bottom after adding the message
         }
+
 
         function scrollToBottom() {
             conversation.scrollTop = conversation.scrollHeight;
